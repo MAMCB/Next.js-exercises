@@ -14,8 +14,19 @@ const DefaultPage = () => {
       this.employees = employees
     }
   }
+  class MixDepartment extends Department {
+    constructor(id: number, name: string, admins: string[], employees: string[]) {
+      super(id, name, admins, employees)
+    }
+  }
+ function merge<T extends object, U extends object>(objA: T, objB: U) {
+   return { ...objA, ...objB } as T & U;
+ } 
+
   const [departments, setDepartments] = useState<Department[]>([])
   const [newDepartment, setNewDepartment] = useState<Department|null>(null)
+  const [departmentsToMerge, setDepartmentsToMerge] = useState<Department[]>([])
+  const [mixDepartments, setMixDepartments] = useState<MixDepartment[]>([])
 
   const addDepartment = (e:React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +51,19 @@ const DefaultPage = () => {
     department.employees.push(newEmployee || "");
     setDepartments([...departments]);
   };
+
+  const createMixDepartment = ()=>
+  {
+    const {id,name,admins,employees}= merge(departments[0],departments[1]);
+    setMixDepartments([...mixDepartments, new MixDepartment(id,name,admins,employees)])
+  }
+
+  const handleDepartmentsMerge = (e: React.FormEvent<HTMLSelectElement>) => {
+    const department = departments.find((department) => department.name === e.currentTarget.value);
+    if (department) {
+      setDepartmentsToMerge([...departmentsToMerge, department])
+    }
+  }
 
   return (
     <div>
@@ -98,6 +122,42 @@ const DefaultPage = () => {
         <input type="text" name="name" onChange={createDepartment} />
         <button type="submit">Add</button>
       </form>
+      <h2>Merge Departments</h2>
+      <select onChange={handleDepartmentsMerge}>
+        {departments.map((department) => (
+          <option key={department.id} value={department.name}>
+            {department.name}
+          </option>
+        ))}
+      </select>
+      <select onChange={handleDepartmentsMerge}>
+        {departments.map((department) => (
+          <option key={department.id} value={department.name}>
+            {department.name}
+          </option>
+        ))}
+      </select>
+      <button onClick={createMixDepartment}>Merge</button>
+      <h2>Mixed Departments</h2>
+      <ul>
+        {mixDepartments.length>0?mixDepartments.map((department) => (
+          <li key={department.id}>
+            <h3>{department.name}</h3>
+            <h4>Admins:</h4>
+            <ul>
+              {department.admins.map((admin) => (
+                <li key={admin}>{admin}</li>
+              ))}
+            </ul>
+            <h4>Employees:</h4>
+            <ul>
+              {department.employees.map((employee) => (
+                <li key={employee}>{employee}</li>
+              ))}
+            </ul>
+          </li>
+        )):<p>No mixed departments</p>}
+      </ul>
     </div>
   );
 }
